@@ -1,0 +1,11 @@
+aws_region             = "us-east-1"
+project_name           = "example-platform"
+environment            = "development"
+vpc_cidr               = "10.60.0.0/16"
+availability_zones     = ["us-east-1a", "us-east-1b"]
+private_subnet_cidrs   = ["10.60.16.0/20", "10.60.32.0/20"]
+ami_id                 = "ami-0123456789abcdef0" # Replace with an approved current AMI in this region.
+instance_type          = "t3.micro"
+root_volume_size_gib   = 20
+monitoring_enabled     = false
+tags                   = { Owner = "platform-team", CostCenter = "replace-me" }

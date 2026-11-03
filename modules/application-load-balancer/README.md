@@ -1,0 +1,9 @@
+# Application Load Balancer module
+
+Creates an Application Load Balancer with an HTTPS listener that forwards to a target group, optional initial target attachments, configurable health checks, and optional HTTP-to-HTTPS redirect. The load balancer defaults to internal and deletion protection is enabled. It requires at least two subnets, explicit security groups, a target port, and an ACM certificate ARN. Public use requires public subnets, a deliberate `internal = false`, and an ingress rule that scopes client access.
+
+Inputs: `name` (1-24 characters), `project`, `environment`, `internal`, `subnet_ids`, `vpc_id`, `security_group_ids`, `target_port`, `target_protocol`, `target_type`, `target_ids`, health check path/matcher, `certificate_arn`, `enable_http_redirect`, and `tags`. Outputs include the ALB ARN/DNS name, target group ARN, and HTTPS listener ARN. If target type is `instance`, target IDs must be EC2 instance IDs; for `ip`, use valid target IP addresses. Ensure target security groups allow the target port from the ALB security group.
+
+The module does not create the certificate or security groups. ACM certificate provisioning, DNS validation, renewal, listener security-group ingress and egress, and target rules are caller responsibilities. The HTTPS policy is set to `ELBSecurityPolicy-TLS13-1-2-2021-06`; review client compatibility against current security requirements. Health checks only indicate target response behavior, not complete application health. ALB hourly and capacity unit charges, cross-AZ transfer, and data transfer can incur costs. Deletion protection is enabled in AWS; for an approved teardown, first change the ALB resource setting to false, apply that reviewed change, then plan the deletion.
+
+Terraform `>= 1.10.0, < 2.0.0`; AWS provider `>= 5.0, < 7.0`. No AWS integration test is included.

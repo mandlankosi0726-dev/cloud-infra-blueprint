@@ -111,3 +111,4 @@ Use [module development](docs/module-development.md). A proposal should identify
 
 See [versioning](docs/versioning.md). Consumers should pin immutable tags. Provider version constraints express a compatibility range, not proof that every release in the range behaves identically; run validation, tests, and reviewed plans before upgrading.
 # arpscayl-terraform
+# cloud-infra-blueprint

@@ -1,0 +1,19 @@
+---
+plugin: amazon.aws.aws_ec2
+regions:
+  - us-east-1
+filters:
+  instance-state-name: running
+  "tag:ManagedBy": Terraform
+keyed_groups:
+  - key: tags.Environment
+    prefix: environment
+  - key: tags.Project
+    prefix: project
+groups:
+  web: "tags.AnsibleRole | default('') == 'web'"
+hostnames:
+  - instance_id
+compose:
+  ansible_host: private_ip_address
+strict: true

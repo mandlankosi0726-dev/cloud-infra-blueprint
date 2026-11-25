@@ -8,6 +8,7 @@ Reusable AWS Terraform modules and example root configurations for ArpScayl Syst
 
 - [`modules/`](modules/): focused, provider-specific reusable modules.
 - [`examples/`](examples/): root Terraform configurations showing module composition.
+- [`ansible/`](ansible/): optional host-configuration playbooks and an AWS EC2 dynamic inventory example.
 - [`docs/`](docs/): architecture, testing, state, environments, deployment, upgrades, onboarding, and troubleshooting.
 - [`policies/security-baseline.md`](policies/security-baseline.md): minimum security expectations.
 - [Security guide](docs/security.md): credentials, state, and scan exception handling.
@@ -46,6 +47,40 @@ Read the selected example's `README.md` and each referenced module's README befo
 8. **Verify and hand over.** Confirm deployed resources, security boundaries, logs/alarms, backup and restore, DNS/TLS, access paths, costs, and incident contacts. Record recovery steps and module source version.
 
 The commands above do not bypass the requirement to review the plan and gain authorization. Never use `-auto-approve` as a replacement for change review. Do not use `terraform destroy` for routine cleanup in shared or production environments.
+
+## Configure hosts with Ansible
+
+Terraform creates and tags infrastructure; Ansible configures operating systems and services after the infrastructure is deployed. The `ansible/` directory contains an AWS EC2 dynamic inventory and a sample NGINX role. Ansible is optional and is never run automatically by Terraform or CI.
+
+1. Install Ansible Core, the AWS SDK for Python (`boto3`), and the AWS collection from the repository root:
+
+   ```sh
+   python3 -m venv .venv
+   . .venv/bin/activate
+   python -m pip install --upgrade pip ansible-core boto3 ansible-lint
+   ansible-galaxy collection install -r ansible/requirements.yml
+   ```
+
+2. Authenticate to the intended AWS account using an approved short-lived profile or role, and set the region used by the deployed environment. Confirm identity with `aws sts get-caller-identity`. Edit `ansible/inventories/aws_ec2.yml` and set `regions` to the target region; its sample value is `us-east-1`.
+3. Ensure target instances have the tags `ManagedBy=Terraform` (added by the EC2 module) and `AnsibleRole=web`. Set `AnsibleRole=web` in the example's `tags` input only for instances intended for this sample. The inventory filters to running Terraform-managed instances, connects to their private IPs, and adds only instances tagged for the `web` role to the playbook's target group. Inspect the result before running anything:
+
+   ```sh
+   AWS_PROFILE=approved-profile make ansible-inventory
+   ```
+
+4. Provide network reachability to the private addresses through an approved VPN, bastion, or other controlled management path. Configure SSH user/key or a supported Ansible connection method for the selected AMI, using your SSH agent or local SSH configuration. Host key checking is enabled. Do not open SSH to the public internet. The sample Terraform examples do not add SSH ingress, and the private workload example has no NAT or package-repository egress; plan approved access and package connectivity separately.
+5. Review the playbook and variables, then run a dry run before applying host changes:
+
+   ```sh
+   AWS_PROFILE=approved-profile make ansible-check ANSIBLE_ARGS='--user ubuntu --private-key /path/to/private-key'
+   AWS_PROFILE=approved-profile \
+     ANSIBLE_CONFIG=ansible/ansible.cfg \
+     ansible-playbook -i ansible/inventories/aws_ec2.yml ansible/playbooks/site.yml --diff --user ubuntu --private-key /path/to/private-key
+   ```
+
+   The playbook installs NGINX, writes a sample page, and enables the service on hosts in the `web` group. Edit its role defaults or add roles for the actual workload. Use Ansible Vault or an approved secret manager for secrets; never commit credentials, private keys, vault passwords, or decrypted variables. Local AWS inventory copies named `*.local.aws_ec2.yml` are ignored by Git.
+
+Run `make ansible-lint` for static linting. `make ansible-inventory` queries AWS and therefore requires valid credentials and AWS API access; `make ansible-check` connects to discovered hosts and should be run only after reviewing its target graph. Check mode is a preview aid and does not guarantee that every task predicts changes perfectly.
 
 ## Local checks
 

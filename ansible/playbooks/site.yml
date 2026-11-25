@@ -1,0 +1,7 @@
+---
+- name: Configure explicitly tagged web servers
+  hosts: web
+  become: true
+  gather_facts: true
+  roles:
+    - web_server

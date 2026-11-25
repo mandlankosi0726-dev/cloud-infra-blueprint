@@ -9,3 +9,7 @@ crash.log
 crash.*.log
 *.tfvars
 !*.tfvars.example
+ansible/inventories/*.local.aws_ec2.yml
+ansible/inventories/*.local.aws_ec2.yaml
+ansible/vault-password-file
+.ansible/

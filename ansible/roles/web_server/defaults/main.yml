@@ -1,0 +1,6 @@
+---
+web_server_package_name: nginx
+web_server_service_name: nginx
+web_server_document_root: /var/www/html
+web_server_page_title: ArpScayl managed web server
+web_server_page_message: This host is configured by the Ansible web_server role.
